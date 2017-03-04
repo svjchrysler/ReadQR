@@ -5,59 +5,39 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.google.zxing.Result;
 
-import org.gdgsantacruz.readqr.models.User;
+
+import org.gdgsantacruz.readqr.Helper;
+import org.gdgsantacruz.readqr.api.IReadQR;
+
+import java.util.List;
 
 import me.dm7.barcodescanner.zxing.ZXingScannerView;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends Activity implements ZXingScannerView.ResultHandler {
 
     private ZXingScannerView mScannerView;
-    FirebaseDatabase firebaseDatabase;
+    private Retrofit retrofit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        configInit();
         mScannerView = new ZXingScannerView(this);
         setContentView(mScannerView);
-        configInit();
     }
 
     private void configInit() {
-       firebaseDatabase = FirebaseDatabase.getInstance();
-        cargarData();
-    }
-
-
-    private void cargarData() {
-
-        imprimirDates();
-    }
-
-    private void imprimirDates() {
-        DatabaseReference databaseReference = firebaseDatabase.getReference("users");
-        databaseReference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-
-                //User user = dataSnapshot.getValue(User.class);
-                for (DataSnapshot data : dataSnapshot.getChildren()) {
-                    data.getValue(User.class);
-                    Log.e("data", data.getKey());
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
+        retrofit = new Retrofit.Builder()
+                .baseUrl(Helper.URL_API)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
     }
 
     @Override
@@ -75,8 +55,23 @@ public class MainActivity extends Activity implements ZXingScannerView.ResultHan
 
     @Override
     public void handleResult(Result result) {
-        Log.e("Error", result.getText().toString());
         Toast.makeText(this, result.getText().toString(), Toast.LENGTH_SHORT).show();
+        verificarElemento(result.getText().toString());
         mScannerView.resumeCameraPreview(this);
+    }
+
+    private void verificarElemento(String data) {
+        IReadQR iReadQR = retrofit.create(IReadQR.class);
+        iReadQR.checkQR(data).enqueue(new Callback<List<Object>>() {
+            @Override
+            public void onResponse(Call<List<Object>> call, Response<List<Object>> response) {
+                Toast.makeText(MainActivity.this, response.body().toString(), Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onFailure(Call<List<Object>> call, Throwable t) {
+                Toast.makeText(MainActivity.this, t.getMessage().toString(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

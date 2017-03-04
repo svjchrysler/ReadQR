@@ -43,8 +43,16 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'me.dm7.barcodescanner:zxing:1.9'
     compile 'com.android.support.constraint:constraint-layout:1.0.0'
-    compile 'com.google.firebase:firebase-core:9.6.1'
-    compile 'com.google.firebase:firebase-database:10.2.0'
-}
 
-apply plugin: 'com.google.gms.google-services'
+    //Library Support
+    compile 'com.android.support:support-compat:25.2.0'
+    compile 'com.android.support:support-v4:25.2.0'
+    compile 'com.android.support:design:25.2.0'
+
+    //Retrofit
+    compile 'com.squareup.retrofit2:retrofit:2.1.0'
+
+    //JSON Parsin
+    compile 'com.google.code.gson:gson:2.8.0'
+    compile 'com.squareup.retrofit2:converter-gson:2.1.0'
+}
